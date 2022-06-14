@@ -1,0 +1,39 @@
+roles:
+  - superadmin
+  - admin
+  - technical
+  - accountant
+  - compliance
+  - support
+  - reporter
+
+admin_permissions:
+  superadmin:
+    manage:
+      - Banner
+  admin:
+    read:
+      - Banner
+    manage:
+      - Banner
+  technical:
+    read:
+      - Banner
+    manage:
+      - Banner
+  accountant:
+    read:
+      - Banner
+  compliance:
+    read:
+      - Banner
+    manage:
+      - Banner
+  support:
+    read:
+      - Banner
+    manage:
+      - Banner
+  reporter:
+    read:
+      - Banner

@@ -9,9 +9,13 @@ require (
 	github.com/gofiber/helmet/v2 v2.2.13
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/uuid v1.3.0
+	github.com/gookit/goutil v0.5.4
+	github.com/jackc/pgconn v1.12.1
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/labstack/gommon v0.3.1
 	github.com/mkideal/cli v0.2.7
 	github.com/zsmartex/pkg v1.3.63
+	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/gorm v1.23.6
 )
 
@@ -47,7 +51,6 @@ require (
 	github.com/hashicorp/vault/sdk v0.4.1 // indirect
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect

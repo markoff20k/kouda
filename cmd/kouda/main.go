@@ -12,6 +12,7 @@ import (
 	"github.com/zsmartex/kouda/infrastucture/database"
 	"github.com/zsmartex/kouda/internal/routes"
 	"github.com/zsmartex/kouda/migrates"
+	"github.com/zsmartex/kouda/types"
 )
 
 func main() {
@@ -56,8 +57,11 @@ var api = &cli.Command{
 			return err
 		}
 
+		ablities := &types.Abilities{}
+
 		app := routes.InitializeRoutes(
 			database,
+			ablities,
 		)
 
 		app.Listen(fmt.Sprintf(":%d", argv.Port))
