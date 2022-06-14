@@ -9,13 +9,18 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"
+	"github.com/zsmartex/kouda/infrastucture/repository"
+	"github.com/zsmartex/kouda/internal/handlers/admin"
 	"github.com/zsmartex/kouda/internal/handlers/public"
 	"github.com/zsmartex/kouda/internal/routes/middlewares"
 	"github.com/zsmartex/kouda/internal/routes/middlewares/logger"
+	"github.com/zsmartex/kouda/types"
+	"github.com/zsmartex/kouda/usecases"
 )
 
 func InitializeRoutes(
 	db *gorm.DB,
+	abilities *types.Abilities,
 ) *fiber.App {
 	config := fiber.Config{
 		BodyLimit:               10 * 1024 * 1024, // this is the default limit of 10MB
@@ -36,9 +41,18 @@ func InitializeRoutes(
 		EnableStackTrace: true,
 	}))
 
+	bannerRepository := repository.NewBannerRepository(db)
+
+	bannerUsecase := usecases.NewBannerUsecase(bannerRepository)
+
 	api_v2 := app.Group("/api/v2")
 
 	public.NewRouter(api_v2.Group("/public"))
+
+	admin.NewRouter(api_v2.Group("/admin", middlewares.Authorization()),
+		bannerUsecase,
+		abilities,
+	)
 
 	return app
 }

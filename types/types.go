@@ -17,3 +17,16 @@ type ENV struct {
 
 type KoudaConfig struct {
 }
+
+type AbilityRole string
+type AbilityAdminPermission string
+
+const (
+	AbilityAdminPermissionRead   AbilityAdminPermission = "read"
+	AbilityAdminPermissionManage AbilityAdminPermission = "manage"
+)
+
+type Abilities struct {
+	Roles            []AbilityRole                                       `yaml:"roles"`
+	AdminPermissions map[AbilityRole]map[AbilityAdminPermission][]string `yaml:"admin_permissions"`
+}
