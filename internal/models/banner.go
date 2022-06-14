@@ -7,13 +7,11 @@ import (
 )
 
 type Banner struct {
-	UUID        uuid.UUID `gorm:"primaryKey;type:uuid;not null;index"`
-	Name        string    `gorm:"type:character varying;not null"`
-	Tag         string    `gorm:"type:character varying;not null"`
-	Description string    `gorm:"type:character varying;not null"`
-	URL         string
-	CreatedAt   time.Time `gorm:"type:timestamp;not null"`
-	UpdatedAt   time.Time `gorm:"type:timestamp;not null"`
+	UUID      uuid.UUID `gorm:"primaryKey;type:uuid;not null;index;default:gen_random_uuid()"`
+	Tag       string    `gorm:"type:character varying;not null"`
+	URL       string    `gorm:"type:character varying;not null"`
+	CreatedAt time.Time `gorm:"type:timestamp;not null"`
+	UpdatedAt time.Time `gorm:"type:timestamp;not null"`
 }
 
 func (b Banner) TableName() string {
