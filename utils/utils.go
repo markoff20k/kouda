@@ -2,6 +2,8 @@ package utils
 
 import (
 	"errors"
+	"mime/multipart"
+	"net/http"
 	"strings"
 
 	"github.com/jackc/pgconn"
@@ -74,4 +76,14 @@ func TrimStringAfter(str string, a string) string {
 		return ""
 	}
 	return str[posAdjusted:]
+}
+
+func ValidateImageFile(file multipart.File) bool {
+	fileHeader := make([]byte, 512)
+	if _, err := file.Read(fileHeader); err != nil {
+		return false
+	}
+	file.Seek(0, 0)
+
+	return strings.HasPrefix(http.DetectContentType(fileHeader), "image/")
 }
