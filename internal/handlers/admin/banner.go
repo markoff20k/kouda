@@ -31,7 +31,7 @@ var (
 func (h Handler) GetBanners(c *fiber.Ctx) error {
 	type Params struct {
 		Tag   string             `query:"tag"`
-		State models.BannerState `query:"state"`
+		State models.BannerState `query:"state" validate:"bannerState"`
 		queries.Order
 		queries.Period
 		queries.Pagination
@@ -142,7 +142,7 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	return c.Status(201).JSON("aaaa")
+	return c.Status(201).JSON(entities.BannerToEntity(banner))
 }
 
 func (h Handler) UpdateBanner(c *fiber.Ctx) error {
@@ -153,7 +153,7 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 
 	type Params struct {
 		Tag   string             `json:"tag"`
-		State models.BannerState `json:"state"`
+		State models.BannerState `json:"state" validate:"required|bannerState"`
 	}
 
 	params := new(Params)
