@@ -12,6 +12,11 @@ type ENV struct {
 	DatabasePass string `env:"DATABASE_PASS" envDefault:"changeme"`
 	DatabaseName string `env:"DATABASE_NAME" envDefault:"kouda"`
 
+	ObjectStorageBucket       string `env:"OBJECT_STORAGE_BUCKET" envDefault:"zsmartex-tech"`
+	ObjectStorageAccessKey    string `env:"OBJECT_STORAGE_ACCESSKEY" envDefault:"AKIA6MAKWE2NUXH5KAG4"`
+	ObjectStorageAccessSecret string `env:"OBJECT_STORAGE_ACCESS_SECRET" envDefault:"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"`
+	ObjectStorageRegion       string `env:"OBJECT_STORAGE_REGION" envDefault:"us-east-1"`
+
 	JWTPublicKey string `env:"JWT_PUBLIC_KEY"`
 }
 

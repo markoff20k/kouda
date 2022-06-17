@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
+	"github.com/zsmartex/pkg/services/uploader"
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"
@@ -20,6 +21,7 @@ import (
 
 func InitializeRoutes(
 	db *gorm.DB,
+	uploader *uploader.Uploader,
 	abilities *types.Abilities,
 ) *fiber.App {
 	config := fiber.Config{
@@ -47,10 +49,14 @@ func InitializeRoutes(
 
 	api_v2 := app.Group("/api/v2")
 
-	public.NewRouter(api_v2.Group("/public"))
-
-	admin.NewRouter(api_v2.Group("/admin", middlewares.Authorization()),
+	public.NewRouter(api_v2.Group("/public"),
 		bannerUsecase,
+		uploader,
+	)
+
+	admin.NewRouter(api_v2.Group("/admin"),
+		bannerUsecase,
+		uploader,
 		abilities,
 	)
 
