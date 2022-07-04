@@ -8,7 +8,7 @@ import (
 	"github.com/gookit/validate"
 	"github.com/labstack/gommon/log"
 	"github.com/mkideal/cli"
-	"github.com/zsmartex/pkg/services/uploader"
+	"github.com/zsmartex/pkg/infrastucture/uploader"
 
 	"github.com/zsmartex/kouda/config"
 	"github.com/zsmartex/kouda/infrastucture/database"

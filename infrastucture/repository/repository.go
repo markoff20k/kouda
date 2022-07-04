@@ -2,123 +2,91 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 
 	"github.com/zsmartex/pkg/gpa"
+	"github.com/zsmartex/pkg/log"
 	"gorm.io/gorm"
-
-	"github.com/zsmartex/kouda/log"
+	"gorm.io/gorm/schema"
 )
 
-type Reader[T any] interface {
-	First(filters ...gpa.Filter) (*T, error)
-	Last(filters ...gpa.Filter) (model *T, err error)
-	Find(filters ...gpa.Filter) []*T
+type Repository[T schema.Tabler] interface {
+	First(model interface{}, filters ...gpa.Filter) error
+	Find(models interface{}, filters ...gpa.Filter) error
+	WithTrx(trxHandle *gorm.DB) Repository[T]
+	Transaction(handler func(tx *gorm.DB) error) error
+	FirstOrCreate(model interface{}, filters ...gpa.Filter) error
+	Create(model interface{}) error
+	Updates(model interface{}, value T, filters ...gpa.Filter) error
+	UpdateColumns(model interface{}, value T, filters ...gpa.Filter) error
+	Delete(model interface{}, filters ...gpa.Filter) error
 }
 
-type Writer[T any] interface {
-	DoTrx(opts ...*sql.TxOptions) *gorm.DB
-	WithTrx(trxHandle *gorm.DB)
-	HandleTrx(tx *gorm.DB, handler func(tx *gorm.DB) error) error
-	FirstOrCreate(model interface{}, filters ...gpa.Filter)
-	Create(model interface{})
-	Updates(model interface{}, value T, filters ...gpa.Filter)
-	UpdateColumns(model interface{}, value T, filters ...gpa.Filter)
-	Delete(filters ...gpa.Filter)
-}
-
-type reader[T any] struct {
+type repository[T schema.Tabler] struct {
 	repository gpa.Repository
 }
 
-func (r reader[T]) First(filters ...gpa.Filter) (model *T, err error) {
-	if err := r.repository.First(context.Background(), &model, filters...); errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	} else if err != nil {
-		panic(err)
+func New[T schema.Tabler](db *gorm.DB, entity T) Repository[T] {
+	return repository[T]{
+		repository: gpa.New(db, entity),
 	}
-
-	return
 }
 
-func (r reader[T]) Last(filters ...gpa.Filter) (model *T, err error) {
-	if err := r.repository.Last(context.Background(), &model, filters...); errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
-	} else if err != nil {
-		panic(err)
-	}
+func (r repository[T]) WithTrx(trxHandle *gorm.DB) Repository[T] {
+	r.repository = r.repository.WithTrx(trxHandle)
 
-	return
+	return r
 }
 
-func (r reader[T]) Find(filters ...gpa.Filter) (models []*T) {
-	if err := r.repository.Find(context.Background(), &models, filters...); err != nil {
-		panic(err)
-	}
-
-	return
+func (r repository[T]) First(model interface{}, filters ...gpa.Filter) (err error) {
+	return r.repository.First(context.Background(), model, filters...)
 }
 
-type writer[T any] struct {
-	repository gpa.Repository
+func (r repository[T]) Find(models interface{}, filters ...gpa.Filter) error {
+	return r.repository.Find(context.Background(), models, filters...)
 }
 
-func (w writer[T]) DoTrx(opts ...*sql.TxOptions) *gorm.DB {
-	return w.repository.Begin(opts...)
-}
+func (r repository[T]) Transaction(handler func(tx *gorm.DB) error) (err error) {
+	tx := r.repository.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
 
-func (w writer[T]) HandleTrx(tx *gorm.DB, handler func(tx *gorm.DB) error) error {
-	if err := handler(tx); err != nil {
-		if err := tx.Rollback().Error; err != nil {
-			return err
+			err = r.(error)
+		}
+	}()
+
+	if err = handler(tx); err != nil {
+		if err = tx.Rollback().Error; err != nil {
+			log.Errorf("failed to rollback transaction: %v", err)
 		}
 
-		return err
+		return
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return err
+	if err = tx.Commit().Error; err != nil {
+		log.Errorf("failed to commit transaction: %v", err)
+		return
 	}
 
 	return nil
 }
 
-func (w writer[T]) WithTrx(trxHandle *gorm.DB) {
-	if trxHandle == nil {
-		log.Debug("Transaction session not found")
-		return
-	}
-
-	w.repository.DB = trxHandle
+func (r repository[T]) FirstOrCreate(model interface{}, filters ...gpa.Filter) error {
+	return r.repository.FirstOrCreate(context.Background(), model, filters...)
 }
 
-func (w writer[T]) FirstOrCreate(model interface{}, filters ...gpa.Filter) {
-	if err := w.repository.FirstOrCreate(context.Background(), model, filters...); err != nil {
-		panic(err)
-	}
+func (r repository[T]) Create(model interface{}) error {
+	return r.repository.Create(context.Background(), model)
 }
 
-func (w writer[T]) Create(model interface{}) {
-	if err := w.repository.Create(context.Background(), model); err != nil {
-		panic(err)
-	}
+func (r repository[T]) Updates(model interface{}, value T, filters ...gpa.Filter) error {
+	return r.repository.Updates(context.Background(), model, value, filters...)
 }
 
-func (w writer[T]) Updates(model interface{}, value T, filters ...gpa.Filter) {
-	if err := w.repository.Updates(context.Background(), model, value, filters...); err != nil {
-		panic(err)
-	}
+func (r repository[T]) UpdateColumns(model interface{}, value T, filters ...gpa.Filter) error {
+	return r.repository.UpdateColumns(context.Background(), model, value, filters...)
 }
 
-func (w writer[T]) UpdateColumns(model interface{}, value T, filters ...gpa.Filter) {
-	if err := w.repository.UpdateColumns(context.Background(), model, value, filters...); err != nil {
-		panic(err)
-	}
-}
-
-func (w writer[T]) Delete(filters ...gpa.Filter) {
-	// if err := w.repository.Delete(context.Background(), T{}, filters...); err != nil {
-	// 	panic(err)
-	// }
+func (r repository[T]) Delete(model interface{}, filters ...gpa.Filter) error {
+	return r.repository.Delete(context.Background(), model, filters...)
 }

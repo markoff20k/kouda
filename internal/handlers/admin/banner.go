@@ -13,12 +13,12 @@ import (
 	"github.com/zsmartex/pkg"
 	"github.com/zsmartex/pkg/gpa"
 	"github.com/zsmartex/pkg/gpa/filters"
+	"github.com/zsmartex/pkg/queries"
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/internal/handlers/admin/entities"
 	"github.com/zsmartex/kouda/internal/handlers/helpers"
 	"github.com/zsmartex/kouda/internal/models"
-	"github.com/zsmartex/kouda/pkg/queries"
 	"github.com/zsmartex/kouda/utils"
 )
 
@@ -26,6 +26,7 @@ var (
 	ErrBannerMissingUUID  = pkg.NewError(fiber.StatusBadRequest, "admin.banner.missing_uuid")
 	ErrBannerMissingImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.missing_image")
 	ErrBannerInvalidImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.invalid_image")
+	ErrBannerDoesntExist  = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.doesnt_exist")
 )
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
@@ -78,6 +79,7 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 
 func (h Handler) CreateBanner(c *fiber.Ctx) error {
 	type Params struct {
+		URL   string             `json:"url" validate:"required"`
 		Tag   string             `json:"tag" validate:"required"`
 		State models.BannerState `json:"state" validate:"required|bannerState"`
 	}
@@ -114,18 +116,16 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 
 	var banner *models.Banner
 
-	tx := h.bannerUsecase.DoTrx()
-
-	if err := h.bannerUsecase.HandleTrx(tx, func(tx *gorm.DB) error {
+	if err := h.bannerUsecase.Transaction(func(tx *gorm.DB) error {
 		banner = &models.Banner{
 			UUID:  uuid.New(),
 			Tag:   params.Tag,
 			State: params.State,
 			Type:  type_file,
-			URL:   "",
+			URL:   params.URL,
 		}
 
-		h.bannerUsecase.Create(&banner)
+		h.bannerUsecase.WithTrx(tx).Create(&banner)
 
 		url := fmt.Sprintf("banners/%s.%s", banner.UUID.String(), type_file)
 
@@ -133,7 +133,7 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 			return err
 		}
 
-		h.bannerUsecase.Updates(&banner, models.Banner{
+		h.bannerUsecase.WithTrx(tx).Updates(&banner, models.Banner{
 			URL: url,
 		})
 
@@ -152,6 +152,7 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 	}
 
 	type Params struct {
+		URL   string             `json:"url" validate:"required"`
 		Tag   string             `json:"tag"`
 		State models.BannerState `json:"state" validate:"required|bannerState"`
 	}
@@ -161,14 +162,12 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 		return err
 	}
 
-	update_params := &models.Banner{
-		UUID: uuid,
+	banner, err := h.bannerUsecase.First(filters.WithAssign(&models.Banner{UUID: uuid}))
+	if err != nil {
+		return err
 	}
 
-	h.bannerUsecase.FirstOrCreate(update_params, filters.WithAssign(&models.Banner{
-		Tag:   params.Tag,
-		State: params.State,
-	}))
+	h.bannerUsecase.Updates(banner, models.Banner{Tag: params.Tag, State: params.State, URL: params.URL})
 
 	return c.JSON(201)
 }

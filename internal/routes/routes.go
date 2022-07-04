@@ -6,13 +6,14 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
-	"github.com/zsmartex/pkg/services/uploader"
+	"github.com/zsmartex/pkg/infrastucture/uploader"
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"
 	"github.com/zsmartex/kouda/infrastucture/repository"
 	"github.com/zsmartex/kouda/internal/handlers/admin"
 	"github.com/zsmartex/kouda/internal/handlers/public"
+	"github.com/zsmartex/kouda/internal/models"
 	"github.com/zsmartex/kouda/internal/routes/middlewares"
 	"github.com/zsmartex/kouda/internal/routes/middlewares/logger"
 	"github.com/zsmartex/kouda/types"
@@ -43,7 +44,7 @@ func InitializeRoutes(
 		EnableStackTrace: true,
 	}))
 
-	bannerRepository := repository.NewBannerRepository(db)
+	bannerRepository := repository.New(db, models.Banner{})
 
 	bannerUsecase := usecases.NewBannerUsecase(bannerRepository)
 

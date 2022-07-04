@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/caarlos0/env/v6"
+	"github.com/zsmartex/pkg/log"
 
 	"github.com/zsmartex/kouda/types"
 )
@@ -12,6 +13,8 @@ func Initialize() error {
 	if err := env.Parse(&Env); err != nil {
 		return err
 	}
+
+	log.New(Env.ApplicationName)
 
 	return nil
 }

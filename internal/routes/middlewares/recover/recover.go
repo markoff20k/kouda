@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/zsmartex/pkg"
+	"github.com/zsmartex/pkg/log"
 
-	"github.com/zsmartex/kouda/log"
 	"github.com/zsmartex/kouda/params"
 	"github.com/zsmartex/kouda/utils"
 )

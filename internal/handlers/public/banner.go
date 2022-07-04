@@ -7,11 +7,11 @@ import (
 	"github.com/gookit/goutil/strutil"
 	"github.com/zsmartex/pkg/gpa"
 	"github.com/zsmartex/pkg/gpa/filters"
+	"github.com/zsmartex/pkg/queries"
 
 	"github.com/zsmartex/kouda/internal/handlers/admin/entities"
 	"github.com/zsmartex/kouda/internal/handlers/helpers"
 	"github.com/zsmartex/kouda/internal/models"
-	"github.com/zsmartex/kouda/pkg/queries"
 )
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {

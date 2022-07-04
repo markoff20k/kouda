@@ -2,7 +2,7 @@ package public
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg/services/uploader"
+	"github.com/zsmartex/pkg/infrastucture/uploader"
 
 	"github.com/zsmartex/kouda/usecases"
 )

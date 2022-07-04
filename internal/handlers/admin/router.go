@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gookit/goutil/fsutil"
-	"github.com/zsmartex/pkg/services/uploader"
+	"github.com/zsmartex/pkg/infrastucture/uploader"
 	"gopkg.in/yaml.v2"
 
 	"github.com/zsmartex/kouda/types"

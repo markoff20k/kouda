@@ -1,78 +1,78 @@
 package usecases
 
 import (
-	"database/sql"
+	"errors"
 
-	"github.com/zsmartex/pkg/gpa"
+	filters "github.com/zsmartex/pkg/gpa"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 
 	"github.com/zsmartex/kouda/infrastucture/repository"
 )
 
-type Reader[T any] interface {
-	First(filters ...gpa.Filter) (*T, error)
-	Last(filters ...gpa.Filter) (*T, error)
-	Find(filters ...gpa.Filter) []*T
-}
-
-type Writer[T any] interface {
-	DoTrx(opts ...*sql.TxOptions) *gorm.DB
-	HandleTrx(tx *gorm.DB, handler func(tx *gorm.DB) error) error
-	FirstOrCreate(model interface{}, filters ...gpa.Filter)
+type Usecase[V schema.Tabler] interface {
+	First(filters ...filters.Filter) (*V, error)
+	Find(filters ...filters.Filter) []*V
+	Transaction(handler func(tx *gorm.DB) error) error
+	FirstOrCreate(model interface{}, filters ...filters.Filter)
 	Create(model interface{})
-	Updates(model interface{}, value T, filters ...gpa.Filter)
-	UpdateColumns(model interface{}, value T, filters ...gpa.Filter)
-	Delete(filters ...gpa.Filter)
+	Updates(model interface{}, value V, filters ...filters.Filter)
+	UpdateColumns(model interface{}, value V, filters ...filters.Filter)
+	Delete(model interface{}, filters ...filters.Filter)
 }
 
-type reader[R repository.Reader[V], V any] struct {
-	repository R
+type usecase[V schema.Tabler] struct {
+	repository repository.Repository[V]
 }
 
-func (r reader[R, V]) First(filters ...gpa.Filter) (*V, error) {
-	return r.repository.First(filters...)
+func (u usecase[V]) First(filters ...filters.Filter) (model *V, err error) {
+	if err := u.repository.First(&model, filters...); errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	} else if err != nil {
+		panic(err)
+	}
+
+	return
 }
 
-func (r reader[R, V]) Last(filters ...gpa.Filter) (*V, error) {
-	return r.repository.Last(filters...)
+func (u usecase[V]) Find(filters ...filters.Filter) (models []*V) {
+	if err := u.repository.Find(&models, filters...); err != nil {
+		panic(err)
+	}
+
+	return
 }
 
-func (r reader[R, V]) Find(filters ...gpa.Filter) []*V {
-	return r.repository.Find(filters...)
+func (u usecase[V]) Transaction(handler func(tx *gorm.DB) error) error {
+	return u.repository.Transaction(handler)
 }
 
-type writer[R repository.Writer[V], V any] struct {
-	repository R
+func (u usecase[V]) FirstOrCreate(model interface{}, filters ...filters.Filter) {
+	if err := u.repository.FirstOrCreate(model, filters...); err != nil {
+		panic(err)
+	}
 }
 
-func (r writer[R, V]) DoTrx(opts ...*sql.TxOptions) *gorm.DB {
-	return r.repository.DoTrx(opts...)
+func (u usecase[V]) Create(model interface{}) {
+	if err := u.repository.Create(model); err != nil {
+		panic(err)
+	}
 }
 
-func (r writer[R, V]) WithTrx(tx *gorm.DB) {
-	r.repository.WithTrx(tx)
+func (u usecase[V]) Updates(model interface{}, value V, filters ...filters.Filter) {
+	if err := u.repository.Updates(model, value, filters...); err != nil {
+		panic(err)
+	}
 }
 
-func (r writer[R, V]) HandleTrx(tx *gorm.DB, handler func(tx *gorm.DB) error) error {
-	return r.repository.HandleTrx(tx, handler)
+func (u usecase[V]) UpdateColumns(model interface{}, value V, filters ...filters.Filter) {
+	if err := u.repository.UpdateColumns(model, value, filters...); err != nil {
+		panic(err)
+	}
 }
 
-func (w writer[R, V]) FirstOrCreate(model interface{}, filters ...gpa.Filter) {
-	w.repository.FirstOrCreate(model, filters...)
-}
-
-func (w writer[R, V]) Create(model interface{}) {
-	w.repository.Create(model)
-}
-
-func (w writer[R, V]) Updates(model interface{}, value V, filters ...gpa.Filter) {
-	w.repository.Updates(model, value, filters...)
-}
-
-func (w writer[R, V]) UpdateColumns(model interface{}, value V, filters ...gpa.Filter) {
-	w.repository.UpdateColumns(model, value, filters...)
-}
-
-func (w writer[R, V]) Delete(filters ...gpa.Filter) {
-	w.repository.Delete(filters...)
+func (u usecase[V]) Delete(model interface{}, filters ...filters.Filter) {
+	if err := u.repository.Delete(model, filters...); err != nil {
+		panic(err)
+	}
 }

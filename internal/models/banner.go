@@ -19,7 +19,8 @@ var BannerStates = []BannerState{
 }
 
 type Banner struct {
-	UUID      uuid.UUID   `gorm:"primaryKey;type:uuid;not null"`
+	ID        int64       `gorm:"primaryKey;not null"`
+	UUID      uuid.UUID   `gorm:"type:uuid;not null;index:index_banners_on_uuid"`
 	Tag       string      `gorm:"type:character varying;not null"`
 	URL       string      `gorm:"type:character varying;not null"`
 	State     BannerState `gorm:"type:character varying;not null;"`
