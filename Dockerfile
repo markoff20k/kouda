@@ -31,5 +31,5 @@ ENV APP_HOME=/app
 
 RUN mkdir -p ${APP_HOME}/config
 
-COPY --from=builder /build/config/barong.yml ./config/
+COPY --from=builder /build/config/abilities.yml ./config/
 COPY --from=builder /build/kouda ./
