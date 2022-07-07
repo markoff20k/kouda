@@ -24,5 +24,7 @@ func NewRouter(
 		Uploader:      uploader,
 	}
 
+	router.Get("/timestamp", GetTimestamp)
+
 	router.Get("/banners", handler.GetBanners)
 }

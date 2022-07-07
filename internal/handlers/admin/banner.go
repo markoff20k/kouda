@@ -31,7 +31,6 @@ var (
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
 	type Params struct {
-		Tag   string             `query:"tag"`
 		State models.BannerState `query:"state" validate:"bannerState"`
 		queries.Order
 		queries.Period
@@ -49,10 +48,6 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 		filters.WithPageable(params.Page, params.Limit),
 		filters.WithOrder(fmt.Sprintf("%s %s", params.OrderBy, params.Ordering)),
 	)
-
-	if strutil.IsNotBlank(params.Tag) {
-		q = append(q, filters.WithFieldEqual("tag", params.Tag))
-	}
 
 	if strutil.IsNotBlank(string(params.State)) {
 		q = append(q, filters.WithFieldEqual("state", params.State))
@@ -80,7 +75,6 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 func (h Handler) CreateBanner(c *fiber.Ctx) error {
 	type Params struct {
 		URL   string             `json:"url" validate:"required"`
-		Tag   string             `json:"tag" validate:"required"`
 		State models.BannerState `json:"state" validate:"required|bannerState"`
 	}
 
@@ -119,7 +113,6 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 	if err := h.bannerUsecase.Transaction(func(tx *gorm.DB) error {
 		banner = &models.Banner{
 			UUID:  uuid.New(),
-			Tag:   params.Tag,
 			State: params.State,
 			Type:  type_file,
 			URL:   params.URL,
@@ -153,7 +146,6 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 
 	type Params struct {
 		URL   string             `json:"url" validate:"required"`
-		Tag   string             `json:"tag"`
 		State models.BannerState `json:"state" validate:"required|bannerState"`
 	}
 
@@ -167,7 +159,7 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 		return err
 	}
 
-	h.bannerUsecase.Updates(banner, models.Banner{Tag: params.Tag, State: params.State, URL: params.URL})
+	h.bannerUsecase.Updates(banner, models.Banner{State: params.State, URL: params.URL})
 
 	return c.JSON(201)
 }

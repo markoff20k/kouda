@@ -10,7 +10,6 @@ import (
 
 type Banner struct {
 	UUID      uuid.UUID          `json:"uuid,omitempty"`
-	Tag       string             `json:"tag,omitempty"`
 	URL       string             `json:"url,omitempty"`
 	ImageURL  string             `json:"image_url,omitempty"`
 	State     models.BannerState `json:"state,omitempty"`
@@ -22,7 +21,6 @@ type Banner struct {
 func BannerToEntity(banner *models.Banner) *Banner {
 	return &Banner{
 		UUID:      uuid.UUID(banner.UUID),
-		Tag:       banner.Tag,
 		URL:       banner.URL,
 		State:     banner.State,
 		Type:      banner.Type,

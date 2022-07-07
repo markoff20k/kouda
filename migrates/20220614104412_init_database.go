@@ -15,8 +15,7 @@ var initDatabase = gormigrate.Migration{
 	Migrate: func(db *gorm.DB) error {
 		type Banner struct {
 			ID        int64              `gorm:"primaryKey;not null"`
-			UUID      uuid.UUID          `gorm:"type:uuid;not null;index:index_banners_on_uuid"`
-			Tag       string             `gorm:"type:character varying;not null"`
+			UUID      uuid.UUID          `gorm:"type:uuid;not null;uniqueIndex:index_banners_on_uuid"`
 			URL       string             `gorm:"type:character varying;not null"`
 			State     models.BannerState `gorm:"type:character varying;not null;"`
 			Type      string             `gorm:"type:character varying;not null;"`
