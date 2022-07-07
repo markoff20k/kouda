@@ -8,7 +8,6 @@ import (
 	"github.com/gookit/validate"
 	"github.com/labstack/gommon/log"
 	"github.com/mkideal/cli"
-	"github.com/zsmartex/pkg/validate"
 	"github.com/zsmartex/pkg/infrastucture/uploader"
 
 	"github.com/zsmartex/kouda/config"
@@ -45,8 +44,6 @@ func InitValidation() {
 		"password": "invalid_{field}",
 		"required": "missing_{field}",
 	})
-
-	validate.InitValidation()
 }
 
 func main() {
