@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg/jwt"
+	"github.com/zsmartex/pkg/v2/jwt"
 
 	"github.com/zsmartex/kouda/config"
 	"github.com/zsmartex/kouda/params"

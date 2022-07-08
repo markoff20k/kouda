@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
-	"github.com/zsmartex/pkg/infrastucture/uploader"
+	"github.com/zsmartex/pkg/v2/infrastucture/uploader"
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"

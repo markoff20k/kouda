@@ -17,7 +17,7 @@ require (
 	github.com/labstack/gommon v0.3.1
 	github.com/mkideal/cli v0.2.7
 	github.com/volatiletech/null/v9 v9.0.0
-	github.com/zsmartex/pkg v1.3.81
+	github.com/zsmartex/pkg/v2 v2.0.3
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/gorm v1.23.6
 )

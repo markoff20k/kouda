@@ -2,7 +2,7 @@ package params
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg"
+	"github.com/zsmartex/pkg/v2"
 )
 
 var (

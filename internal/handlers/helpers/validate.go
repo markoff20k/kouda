@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gookit/validate"
-	"github.com/zsmartex/pkg"
+	"github.com/zsmartex/pkg/v2"
 )
 
 func Validate(value interface{}, prefix string) *pkg.Error {

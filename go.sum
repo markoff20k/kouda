@@ -239,8 +239,8 @@ github.com/volatiletech/null/v9 v9.0.0/go.mod h1:zRFghPVahaiIMRXiUJrc6gsoG83Cm3Z
 github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 h1:QldyIu/L63oPpyvQmHgvgickp1Yw510KJOqX7H24mg8=
 github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778/go.mod h1:2MuV+tbUrU1zIOPMxZ5EncGwgmMJsa+9ucAQZXxsObs=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
-github.com/zsmartex/pkg v1.3.81 h1:B1h2YTsV/jV4s4S5ksmW7Bd8fivnfK8L9DKlVn6VoGA=
-github.com/zsmartex/pkg v1.3.81/go.mod h1:+6NQI5RcF/K43ihnBYRrWmVFjJu5tKllWkm59XqQzcA=
+github.com/zsmartex/pkg/v2 v2.0.3 h1:uzYyBOD/TYndHJgEWZulJiy0ZeRsvC3jerTHSFHshOs=
+github.com/zsmartex/pkg/v2 v2.0.3/go.mod h1:ZkILLlXk+nQ+Sb7Hyt6YfyklTDhpZiOwBjZtkHk8elc=
 go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.5.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=

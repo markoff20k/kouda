@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/zsmartex/pkg/gpa"
-	"github.com/zsmartex/pkg/log"
+	"github.com/zsmartex/pkg/v2/gpa"
+	"github.com/zsmartex/pkg/v2/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )

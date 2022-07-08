@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/zsmartex/pkg/infrastucture/database"
+	"github.com/zsmartex/pkg/v2/infrastucture/database"
 	"gorm.io/gorm"
 )
 

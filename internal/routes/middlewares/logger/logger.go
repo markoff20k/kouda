@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg/log"
+	"github.com/zsmartex/pkg/v2/log"
 )
 
 // Logger variables

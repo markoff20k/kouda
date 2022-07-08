@@ -2,7 +2,7 @@ package public
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg/infrastucture/uploader"
+	"github.com/zsmartex/pkg/v2/infrastucture/uploader"
 
 	"github.com/zsmartex/kouda/usecases"
 )
@@ -27,4 +27,5 @@ func NewRouter(
 	router.Get("/timestamp", GetTimestamp)
 
 	router.Get("/banners", handler.GetBanners)
+	router.Get("/banners/:uuid", handler.GetBannerImage)
 }

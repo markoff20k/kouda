@@ -3,7 +3,7 @@ package usecases
 import (
 	"errors"
 
-	filters "github.com/zsmartex/pkg/gpa"
+	filters "github.com/zsmartex/pkg/v2/gpa"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 
