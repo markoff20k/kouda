@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gookit/goutil/strutil"
 	"github.com/zsmartex/pkg/v2"
 	"github.com/zsmartex/pkg/v2/gpa"
 	"github.com/zsmartex/pkg/v2/gpa/filters"
@@ -21,7 +20,6 @@ var (
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
 	type Params struct {
-		Tag string `query:"tag"`
 		queries.Order
 		queries.Period
 		queries.Pagination
@@ -39,10 +37,6 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 		filters.WithPageable(params.Page, params.Limit),
 		filters.WithOrder(fmt.Sprintf("%s %s", params.OrderBy, params.Ordering)),
 	)
-
-	if strutil.IsNotBlank(params.Tag) {
-		q = append(q, filters.WithFieldEqual("tag", params.Tag))
-	}
 
 	banners := h.bannerUsecase.Find(q...)
 

@@ -13,7 +13,7 @@ type Banner struct {
 	URL       string             `json:"url,omitempty"`
 	ImageURL  string             `json:"image_url,omitempty"`
 	State     models.BannerState `json:"state,omitempty"`
-	Type      string             `gorm:"type,omitempty"`
+	Type      string             `json:"type,omitempty"`
 	CreatedAt time.Time          `json:"created_at,omitempty"`
 	UpdatedAt time.Time          `json:"updated_at,omitempty"`
 }
@@ -23,7 +23,6 @@ func BannerToEntity(banner *models.Banner) *Banner {
 		UUID:      uuid.UUID(banner.UUID),
 		URL:       banner.URL,
 		State:     banner.State,
-		Type:      banner.Type,
 		CreatedAt: banner.CreatedAt,
 		UpdatedAt: banner.UpdatedAt,
 	}
