@@ -11,7 +11,6 @@ import (
 type Banner struct {
 	UUID      uuid.UUID          `json:"uuid,omitempty"`
 	URL       string             `json:"url,omitempty"`
-	ImageURL  string             `json:"image_url,omitempty"`
 	State     models.BannerState `json:"state,omitempty"`
 	Type      string             `json:"type,omitempty"`
 	CreatedAt time.Time          `json:"created_at,omitempty"`

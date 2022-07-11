@@ -45,15 +45,6 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 		bannerEntities = append(bannerEntities, entities.BannerToEntity(banner))
 	}
 
-	for _, e := range bannerEntities {
-		image_url, err := h.Uploader.GetURL(fmt.Sprintf("banners/%s.%s", e.UUID.String(), e.Type))
-		if err != nil {
-			return err
-		}
-
-		e.ImageURL = image_url
-	}
-
 	return c.JSON(bannerEntities)
 }
 
