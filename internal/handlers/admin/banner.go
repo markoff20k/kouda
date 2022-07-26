@@ -136,8 +136,8 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 	}
 
 	type Params struct {
-		URL   string             `json:"url" validate:"required"`
-		State models.BannerState `json:"state" validate:"required|bannerState"`
+		URL   string             `json:"url"`
+		State models.BannerState `json:"state" validate:"bannerState"`
 	}
 
 	params := new(Params)

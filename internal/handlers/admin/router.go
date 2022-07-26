@@ -31,7 +31,7 @@ func NewRouter(
 		abilities:     abilities,
 	}
 
-	router.Post("/banner", handler.CreateBanner)
+	router.Post("/banners", handler.CreateBanner)
 	router.Get("/banners", handler.GetBanners)
-	router.Patch("/banner/:uuid", handler.UpdateBanner)
+	router.Patch("/banners/:uuid", handler.UpdateBanner)
 }
