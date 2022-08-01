@@ -37,7 +37,7 @@ const (
 	TagBytesReceived     = "bytesReceived"
 	TagRoute             = "route"
 	TagError             = "error"
-	// DEPRECATED: Use TagReqHeader instead
+	// TagHeader DEPRECATED: Use TagReqHeader instead
 	TagHeader     = "header:"
 	TagReqHeader  = "reqHeader:"
 	TagRespHeader = "respHeader:"
@@ -85,7 +85,7 @@ func New(config ...Config) fiber.Handler {
 	// Check if format contains latency
 	cfg.enableLatency = strings.Contains(cfg.Format, "${latency}")
 
-	// Create correct timeformat
+	// Create correct time format
 	var timestamp atomic.Value
 	timestamp.Store(time.Now().In(cfg.timeZoneLocation).Format(cfg.TimeFormat))
 
@@ -151,15 +151,15 @@ func New(config ...Config) fiber.Handler {
 
 			latency := stop.Sub(start).Round(time.Millisecond)
 
-			is_req_json := true
+			isReqJson := true
 			reqBodyCompactedBuffer := new(bytes.Buffer)
 			err = json.Compact(reqBodyCompactedBuffer, c.Body())
 			if err != nil {
-				is_req_json = false
+				isReqJson = false
 			}
 
 			var reqBodyBytes []byte
-			if is_req_json {
+			if isReqJson {
 				reqBodyBytes = reqBodyCompactedBuffer.Bytes()
 			} else {
 				reqBodyBytes = c.Body()
@@ -168,14 +168,14 @@ func New(config ...Config) fiber.Handler {
 			reqBodyBytes = bytes.TrimPrefix(reqBodyBytes, []byte("\""))
 			reqBodyBytes = bytes.TrimSuffix(reqBodyBytes, []byte("\""))
 
-			is_res_json := true
+			isResJson := true
 			resBodyCompactedBuffer := new(bytes.Buffer)
 			err = json.Compact(resBodyCompactedBuffer, c.Response().Body())
 			if err != nil {
-				is_res_json = false
+				isResJson = false
 			}
 			var resBodyBytes []byte
-			if is_res_json {
+			if isResJson {
 				resBodyBytes = resBodyCompactedBuffer.Bytes()
 			} else {
 				resBodyBytes = c.Response().Body()
@@ -184,7 +184,7 @@ func New(config ...Config) fiber.Handler {
 			resBodyBytes = bytes.TrimPrefix(resBodyBytes, []byte("\""))
 			resBodyBytes = bytes.TrimSuffix(resBodyBytes, []byte("\""))
 
-			log_str := fmt.Sprintf(
+			logStr := fmt.Sprintf(
 				`{"method": %q, "path": %q, "status": %d, "ip": %q, "latency": %q, "payload": "%s", "response": "%s" }`,
 				c.Method(),
 				c.Path(),
@@ -197,11 +197,11 @@ func New(config ...Config) fiber.Handler {
 
 			switch c.Response().StatusCode() {
 			case 401, 422, 404, 405:
-				log.Warn(log_str)
+				log.Warn(logStr)
 			case 500:
-				log.Error(log_str)
+				log.Error(logStr)
 			default:
-				log.Infof(log_str)
+				log.Infof(logStr)
 			}
 
 			// End chain

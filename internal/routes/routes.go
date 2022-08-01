@@ -10,10 +10,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"
-	"github.com/zsmartex/kouda/infrastucture/repository"
 	"github.com/zsmartex/kouda/internal/handlers/admin"
 	"github.com/zsmartex/kouda/internal/handlers/public"
-	"github.com/zsmartex/kouda/internal/models"
 	"github.com/zsmartex/kouda/internal/routes/middlewares"
 	"github.com/zsmartex/kouda/internal/routes/middlewares/logger"
 	"github.com/zsmartex/kouda/types"
@@ -44,18 +42,17 @@ func InitializeRoutes(
 		EnableStackTrace: true,
 	}))
 
-	bannerRepository := repository.New(db, models.Banner{})
+	bannerUsecase := usecases.NewBannerUsecase(db)
+	memberUsecase := usecases.NewMemberUsecase(db)
 
-	bannerUsecase := usecases.NewBannerUsecase(bannerRepository)
+	apiV2 := app.Group("/api/v2")
 
-	api_v2 := app.Group("/api/v2")
-
-	public.NewRouter(api_v2.Group("/public"),
+	public.NewRouter(apiV2.Group("/public", middlewares.Authorization(memberUsecase)),
 		bannerUsecase,
 		uploader,
 	)
 
-	admin.NewRouter(api_v2.Group("/admin"),
+	admin.NewRouter(apiV2.Group("/admin", middlewares.Authorization(memberUsecase)),
 		bannerUsecase,
 		uploader,
 		abilities,

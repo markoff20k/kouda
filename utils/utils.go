@@ -83,7 +83,9 @@ func ValidateImageFile(file multipart.File) bool {
 	if _, err := file.Read(fileHeader); err != nil {
 		return false
 	}
-	file.Seek(0, 0)
+	if _, err := file.Seek(0, 0); err != nil {
+		return false
+	}
 
 	return strings.HasPrefix(http.DetectContentType(fileHeader), "image/")
 }

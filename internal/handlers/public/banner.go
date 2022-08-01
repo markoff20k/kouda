@@ -30,6 +30,8 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 		return err
 	}
 
+	ctx := c.Context()
+
 	q := make([]gpa.Filter, 0)
 	q = append(
 		q,
@@ -38,7 +40,7 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 		filters.WithOrder(fmt.Sprintf("%s %s", params.OrderBy, params.Ordering)),
 	)
 
-	banners := h.bannerUsecase.Find(q...)
+	banners := h.bannerUsecase.Find(ctx, q...)
 
 	bannerEntities := make([]*entities.Banner, 0)
 	for _, banner := range banners {
@@ -50,13 +52,14 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 
 func (h Handler) GetBannerImage(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
+	ctx := c.Context()
 
-	banner, err := h.bannerUsecase.First(filters.WithFieldEqual("uuid", uuid))
+	banner, err := h.bannerUsecase.First(ctx, filters.WithFieldEqual("uuid", uuid), filters.WithFieldEqual("state", models.BannerStateEnabled))
 	if err != nil {
 		return ErrBannerNotFound
 	}
 
-	body, err := h.Uploader.GetBodyContent(fmt.Sprintf("banners/%s.%s", banner.UUID.String(), banner.Type))
+	body, err := h.Uploader.GetBodyContent(ctx, fmt.Sprintf("banners/%s.%s", banner.UUID.String(), banner.Type))
 	if err != nil {
 		return err
 	}

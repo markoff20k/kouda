@@ -2,8 +2,8 @@ package admin
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/gookit/goutil/arrutil"
 	"github.com/zsmartex/pkg/v2"
+	"github.com/zsmartex/pkg/v2/utils"
 
 	"github.com/zsmartex/kouda/internal/models"
 	"github.com/zsmartex/kouda/types"
@@ -14,11 +14,12 @@ var (
 )
 
 func (h Handler) adminAuthorize(c *fiber.Ctx, permission types.AbilityAdminPermission, resource string) {
-	current_user := c.Locals("current_user").(*models.User)
+	currentUser := c.Locals("current_member").(*models.Member)
 
-	resources := h.abilities.AdminPermissions[types.AbilityRole(current_user.Role)][permission]
+	resources := h.abilities.AdminPermissions[types.AbilityRole(currentUser.Role)][types.AbilityAdminPermissionManage]
+	resources = append(resources, h.abilities.AdminPermissions[types.AbilityRole(currentUser.Role)][permission]...)
 
-	if arrutil.NotContains(resources, resource) {
+	if utils.Contains(resources, resource) {
 		panic(ErrAbilityNotPermitted)
 	}
 }

@@ -3,7 +3,8 @@ package usecases
 import (
 	"gorm.io/gorm"
 
-	"github.com/zsmartex/kouda/infrastucture/repository"
+	"github.com/zsmartex/pkg/v2/repository"
+
 	"github.com/zsmartex/kouda/internal/models"
 )
 
@@ -17,10 +18,10 @@ type BannerUsecase interface {
 	WithTrx(trxHandle *gorm.DB) BannerUsecase
 }
 
-func NewBannerUsecase(repo repository.Repository[models.Banner]) BannerUsecase {
+func NewBannerUsecase(db *gorm.DB) BannerUsecase {
 	return bannerUsecase{
 		usecase: usecase[models.Banner]{
-			repository: repo,
+			repository: repository.New(db, models.Banner{}),
 		},
 	}
 }

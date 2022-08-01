@@ -16,22 +16,38 @@ type Handler struct {
 	abilities     *types.Abilities
 }
 
+type Abilities struct {
+	Roles            []AbilityRole                                       `yaml:"roles"`
+	AdminPermissions map[AbilityRole]map[AbilityAdminPermission][]string `yaml:"admin_permissions"`
+}
+
+type AbilityRole string
+type AbilityAdminPermission string
+
+const (
+	AbilityAdminPermissionRead   AbilityAdminPermission = "read"
+	AbilityAdminPermissionManage AbilityAdminPermission = "manage"
+)
+
 func NewRouter(
 	router fiber.Router,
-	banner_usecase usecases.BannerUsecase,
+	bannerUsecase usecases.BannerUsecase,
 	uploader *uploader.Uploader,
 	abilities *types.Abilities,
 ) {
 	bytes := fsutil.MustReadFile("config/abilities.yml")
-	yaml.Unmarshal(bytes, &abilities)
+	if err := yaml.Unmarshal(bytes, &abilities); err != nil {
+		return
+	}
 
 	handler := Handler{
-		bannerUsecase: banner_usecase,
+		bannerUsecase: bannerUsecase,
 		uploader:      uploader,
 		abilities:     abilities,
 	}
 
-	router.Post("/banners", handler.CreateBanner)
 	router.Get("/banners", handler.GetBanners)
-	router.Patch("/banners/:uuid", handler.UpdateBanner)
+	router.Post("/banners", handler.CreateBanner)
+	router.Put("/banners", handler.UpdateBanner)
+	router.Delete("/banners/:uuid", handler.DeleteBanner)
 }

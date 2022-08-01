@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// Get current timestamp
+// GetTimestamp Get current timestamp
 func GetTimestamp(c *fiber.Ctx) error {
 	return c.JSON(time.Now())
 }

@@ -10,8 +10,9 @@ import (
 	"github.com/mkideal/cli"
 	"github.com/zsmartex/pkg/v2/infrastucture/uploader"
 
+	"github.com/zsmartex/pkg/v2/infrastucture/database"
+
 	"github.com/zsmartex/kouda/config"
-	"github.com/zsmartex/kouda/infrastucture/database"
 	"github.com/zsmartex/kouda/internal/models"
 	"github.com/zsmartex/kouda/internal/routes"
 	"github.com/zsmartex/kouda/migrates"
@@ -85,9 +86,15 @@ var api = &cli.Command{
 
 		InitValidation()
 
-		database, err := database.NewDatabase(config.Env.DatabaseHost, config.Env.DatabasePort, config.Env.DatabaseUser, config.Env.DatabasePass, config.Env.DatabaseName)
+		db, err := database.New(&database.Config{
+			Host:     config.Env.DatabaseHost,
+			Port:     config.Env.DatabasePort,
+			User:     config.Env.DatabaseUser,
+			Password: config.Env.DatabasePass,
+			DBName:   config.Env.DatabaseName,
+		})
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		uploader := uploader.New(config.Env.ObjectStorageBucket, config.Env.ObjectStorageAccessKey, config.Env.ObjectStorageAccessSecret, config.Env.ObjectStorageRegion)
@@ -95,15 +102,17 @@ var api = &cli.Command{
 			return err
 		}
 
-		ablities := &types.Abilities{}
+		abilities := &types.Abilities{}
 
 		app := routes.InitializeRoutes(
-			database,
+			db,
 			uploader,
-			ablities,
+			abilities,
 		)
 
-		app.Listen(fmt.Sprintf(":%d", argv.Port))
+		if err := app.Listen(fmt.Sprintf(":%d", argv.Port)); err != nil {
+			return err
+		}
 
 		return nil
 	},
@@ -113,12 +122,18 @@ var migration = &cli.Command{
 	Name: "migration",
 	Desc: "this is migration command",
 	Fn: func(ctx *cli.Context) error {
-		database, err := database.NewDatabase(config.Env.DatabaseHost, config.Env.DatabasePort, config.Env.DatabaseUser, config.Env.DatabasePass, config.Env.DatabaseName)
+		db, err := database.New(&database.Config{
+			Host:     config.Env.DatabaseHost,
+			Port:     config.Env.DatabasePort,
+			User:     config.Env.DatabaseUser,
+			Password: config.Env.DatabasePass,
+			DBName:   config.Env.DatabaseName,
+		})
 		if err != nil {
-			return err
+			panic(err)
 		}
 
-		migrate := gormigrate.New(database, gormigrate.DefaultOptions, migrates.ModelSchemaList)
+		migrate := gormigrate.New(db, gormigrate.DefaultOptions, migrates.ModelSchemaList)
 
 		return migrate.Migrate()
 	},

@@ -15,12 +15,12 @@ type Handler struct {
 
 func NewRouter(
 	router fiber.Router,
-	banner_usecase usecases.BannerUsecase,
+	bannerUsecase usecases.BannerUsecase,
 	uploader *uploader.Uploader,
 ) {
 
 	handler := Handler{
-		bannerUsecase: banner_usecase,
+		bannerUsecase: bannerUsecase,
 		Uploader:      uploader,
 	}
 
