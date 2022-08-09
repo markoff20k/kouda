@@ -55,6 +55,7 @@ func main() {
 	if err := cli.Root(root,
 		cli.Tree(api),
 		cli.Tree(migration),
+		cli.Tree(createDB),
 	).Run(os.Args[1:]); err != nil {
 		log.Error(err)
 		os.Exit(1)
@@ -136,5 +137,19 @@ var migration = &cli.Command{
 		migrate := gormigrate.New(db, gormigrate.DefaultOptions, migrates.ModelSchemaList)
 
 		return migrate.Migrate()
+	},
+}
+
+var createDB = &cli.Command{
+	Name: "createdb",
+	Desc: "this is createdb command",
+	Fn: func(ctx *cli.Context) error {
+		if err := database.CreateDatabase(config.Env.DatabaseHost, config.Env.DatabasePort, config.Env.DatabaseUser, config.Env.DatabasePass, config.Env.DatabaseName); err != nil {
+			return fmt.Errorf("failed to create database: %w", err)
+		} else {
+			log.Infof("Database: %s created successfully", config.Env.DatabaseName)
+		}
+
+		return nil
 	},
 }
