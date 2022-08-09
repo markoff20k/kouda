@@ -27,7 +27,7 @@ var (
 	ErrBannerMissingUUID  = pkg.NewError(fiber.StatusBadRequest, "admin.banner.missing_uuid")
 	ErrBannerMissingImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.missing_image")
 	ErrBannerInvalidImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.invalid_image")
-	ErrBannerDoesntExist  = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.doesnt_exist")
+	ErrBannerDoesntExist  = pkg.NewError(fiber.StatusNotFound, "resource.banner.doesnt_exist")
 )
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
@@ -59,11 +59,16 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 	}
 
 	banners := h.bannerUsecase.Find(ctx, q...)
+	total := h.bannerUsecase.Count(ctx, q...)
 
 	bannerEntities := make([]*entities.Banner, 0)
 	for _, banner := range banners {
 		bannerEntities = append(bannerEntities, entities.BannerToEntity(banner))
 	}
+
+	c.Set("Page", fmt.Sprint(params.Page))
+	c.Set("Per-Size", fmt.Sprint(params.Limit))
+	c.Set("Total", fmt.Sprint(total))
 
 	return c.JSON(bannerEntities)
 }
@@ -73,7 +78,7 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 
 	type Params struct {
 		URL   string             `json:"url" validate:"required"`
-		State models.BannerState `json:"state" validate:"required|bannerState"`
+		State models.BannerState `json:"state" validate:"bannerState" default:"disabled"`
 	}
 
 	params := new(Params)
@@ -161,7 +166,7 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 		targetBanner.State = params.State
 	}
 
-	if len(params.State) > 0 {
+	if len(params.URL) > 0 {
 		targetBanner.URL = params.URL
 	}
 
@@ -229,4 +234,23 @@ func (h Handler) DeleteBanner(c *fiber.Ctx) error {
 	h.bannerUsecase.Delete(ctx, models.Banner{}, filters.WithFieldEqual("uuid", uuidBanner))
 
 	return c.JSON(201)
+}
+
+func (h Handler) GetBannerImage(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+	ctx := c.Context()
+
+	banner, err := h.bannerUsecase.First(ctx, filters.WithFieldEqual("uuid", uuid))
+	if err != nil {
+		return ErrBannerDoesntExist
+	}
+
+	body, err := h.uploader.GetBodyContent(ctx, fmt.Sprintf("banners/%s.%s", banner.UUID.String(), banner.Type))
+	if err != nil {
+		return err
+	}
+
+	c.Set("Content-Type", "image/jpeg")
+
+	return c.Send(body)
 }

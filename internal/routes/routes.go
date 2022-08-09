@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
 	"github.com/zsmartex/pkg/v2/infrastucture/uploader"
+	"github.com/zsmartex/pkg/v2/log"
 	"gorm.io/gorm"
 
 	"github.com/zsmartex/kouda/config"
@@ -34,10 +35,11 @@ func InitializeRoutes(
 
 	app := fiber.New(config)
 
+	app.Use(middlewares.ParseIP)
 	app.Use(compress.New())
 	app.Use(helmet.New())
 	app.Use(requestid.New())
-	app.Use(logger.New())
+	app.Use(logger.New(log.Logger))
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 	}))
@@ -47,7 +49,7 @@ func InitializeRoutes(
 
 	apiV2 := app.Group("/api/v2")
 
-	public.NewRouter(apiV2.Group("/public", middlewares.Authorization(memberUsecase)),
+	public.NewRouter(apiV2.Group("/public"),
 		bannerUsecase,
 		uploader,
 	)

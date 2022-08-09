@@ -19,7 +19,7 @@ func (h Handler) adminAuthorize(c *fiber.Ctx, permission types.AbilityAdminPermi
 	resources := h.abilities.AdminPermissions[types.AbilityRole(currentUser.Role)][types.AbilityAdminPermissionManage]
 	resources = append(resources, h.abilities.AdminPermissions[types.AbilityRole(currentUser.Role)][permission]...)
 
-	if utils.Contains(resources, resource) {
+	if !utils.Contains(resources, resource) {
 		panic(ErrAbilityNotPermitted)
 	}
 }

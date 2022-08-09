@@ -4,61 +4,62 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/zsmartex/pkg/v2/log"
+	"github.com/sirupsen/logrus"
 )
 
 // Logger variables
-const (
-	TagPid               = "pid"
-	TagTime              = "time"
-	TagReferer           = "referer"
-	TagProtocol          = "protocol"
-	TagPort              = "port"
-	TagIP                = "ip"
-	TagIPs               = "ips"
-	TagHost              = "host"
-	TagMethod            = "method"
-	TagPath              = "path"
-	TagURL               = "url"
-	TagUA                = "ua"
-	TagLatency           = "latency"
-	TagStatus            = "status"
-	TagResBody           = "resBody"
-	TagReqHeaders        = "reqHeaders"
-	TagQueryStringParams = "queryParams"
-	TagBody              = "body"
-	TagBytesSent         = "bytesSent"
-	TagBytesReceived     = "bytesReceived"
-	TagRoute             = "route"
-	TagError             = "error"
-	// TagHeader DEPRECATED: Use TagReqHeader instead
-	TagHeader     = "header:"
-	TagReqHeader  = "reqHeader:"
-	TagRespHeader = "respHeader:"
-	TagLocals     = "locals:"
-	TagQuery      = "query:"
-	TagForm       = "form:"
-	TagCookie     = "cookie:"
-	TagBlack      = "black"
-	TagRed        = "red"
-	TagGreen      = "green"
-	TagYellow     = "yellow"
-	TagBlue       = "blue"
-	TagMagenta    = "magenta"
-	TagCyan       = "cyan"
-	TagWhite      = "white"
-	TagReset      = "reset"
-)
+//const (
+//	TagPid               = "pid"
+//	TagTime              = "time"
+//	TagReferer           = "referer"
+//	TagProtocol          = "protocol"
+//	TagPort              = "port"
+//	TagIP                = "ip"
+//	TagIPs               = "ips"
+//	TagHost              = "host"
+//	TagMethod            = "method"
+//	TagPath              = "path"
+//	TagURL               = "url"
+//	TagUA                = "ua"
+//	TagLatency           = "latency"
+//	TagStatus            = "status"
+//	TagResBody           = "resBody"
+//	TagReqHeaders        = "reqHeaders"
+//	TagQueryStringParams = "queryParams"
+//	TagBody              = "body"
+//	TagBytesSent         = "bytesSent"
+//	TagBytesReceived     = "bytesReceived"
+//	TagRoute             = "route"
+//	TagError             = "error"
+//	// TagHeader DEPRECATED: Use TagReqHeader instead
+//	TagHeader     = "header:"
+//	TagReqHeader  = "reqHeader:"
+//	TagRespHeader = "respHeader:"
+//	TagLocals     = "locals:"
+//	TagQuery      = "query:"
+//	TagForm       = "form:"
+//	TagCookie     = "cookie:"
+//	TagBlack      = "black"
+//	TagRed        = "red"
+//	TagGreen      = "green"
+//	TagYellow     = "yellow"
+//	TagBlue       = "blue"
+//	TagMagenta    = "magenta"
+//	TagCyan       = "cyan"
+//	TagWhite      = "white"
+//	TagReset      = "reset"
+//)
 
 // Color values
 const (
-	cBlack   = "\u001b[90m"
+	//cBlack   = "\u001b[90m"
 	cRed     = "\u001b[91m"
 	cGreen   = "\u001b[92m"
 	cYellow  = "\u001b[93m"
@@ -70,7 +71,7 @@ const (
 )
 
 // New creates a new middleware handler
-func New(config ...Config) fiber.Handler {
+func New(logger *logrus.Entry, config ...Config) fiber.Handler {
 	// Set default config
 	cfg := configDefault(config...)
 
@@ -85,7 +86,7 @@ func New(config ...Config) fiber.Handler {
 	// Check if format contains latency
 	cfg.enableLatency = strings.Contains(cfg.Format, "${latency}")
 
-	// Create correct time format
+	// Create correct time-format
 	var timestamp atomic.Value
 	timestamp.Store(time.Now().In(cfg.timeZoneLocation).Format(cfg.TimeFormat))
 
@@ -151,22 +152,34 @@ func New(config ...Config) fiber.Handler {
 
 			latency := stop.Sub(start).Round(time.Millisecond)
 
-			isReqJson := true
-			reqBodyCompactedBuffer := new(bytes.Buffer)
-			err = json.Compact(reqBodyCompactedBuffer, c.Body())
-			if err != nil {
-				isReqJson = false
-			}
+			params := c.Locals("params")
 
 			var reqBodyBytes []byte
-			if isReqJson {
-				reqBodyBytes = reqBodyCompactedBuffer.Bytes()
-			} else {
-				reqBodyBytes = c.Body()
-			}
+			if params != nil {
+				reqBodyBytes, err = json.Marshal(params)
+				if err != nil {
+					reqBodyBytes = []byte("{}")
+				} else {
+					var mapParams map[string]interface{}
+					err = json.Unmarshal(reqBodyBytes, &mapParams)
+					if err == nil {
+						hiddenFields := []string{"password", "otp_code", "email_code", "phone_code", "verification_code"}
 
-			reqBodyBytes = bytes.TrimPrefix(reqBodyBytes, []byte("\""))
-			reqBodyBytes = bytes.TrimSuffix(reqBodyBytes, []byte("\""))
+						for _, field := range hiddenFields {
+							if _, ok := mapParams[field]; ok {
+								mapParams[field] = "[HIDDEN]"
+							}
+						}
+
+						reqBodyBytes, err = json.Marshal(mapParams)
+						if err != nil {
+							reqBodyBytes = []byte("{}")
+						}
+					}
+				}
+			} else {
+				reqBodyBytes = []byte("{}")
+			}
 
 			isResJson := true
 			resBodyCompactedBuffer := new(bytes.Buffer)
@@ -184,12 +197,16 @@ func New(config ...Config) fiber.Handler {
 			resBodyBytes = bytes.TrimPrefix(resBodyBytes, []byte("\""))
 			resBodyBytes = bytes.TrimSuffix(resBodyBytes, []byte("\""))
 
+			if len(resBodyBytes) > 10_000 {
+				resBodyBytes = []byte("[TRUNCATED]")
+			}
+
 			logStr := fmt.Sprintf(
-				`{"method": %q, "path": %q, "status": %d, "ip": %q, "latency": %q, "payload": "%s", "response": "%s" }`,
+				`{"method": %q, "path": %q, "status": %d, "ip": %q, "latency": %q, "payload": %s, "response": %s }`,
 				c.Method(),
 				c.Path(),
 				c.Response().StatusCode(),
-				c.IP(),
+				c.Locals("remote_ip").(net.IP).String(),
 				latency,
 				reqBodyBytes,
 				resBodyBytes,
@@ -197,11 +214,11 @@ func New(config ...Config) fiber.Handler {
 
 			switch c.Response().StatusCode() {
 			case 401, 422, 404, 405:
-				log.Warn(logStr)
+				logger.Warn(logStr)
 			case 500:
-				log.Error(logStr)
+				logger.Error(logStr)
 			default:
-				log.Infof(logStr)
+				logger.Infof(logStr)
 			}
 
 			// End chain
