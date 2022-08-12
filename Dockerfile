@@ -23,7 +23,9 @@ COPY . .
 # building
 RUN go build -o kouda ./cmd/kouda/main.go
 
-FROM alpine:20210804
+FROM alpine
+
+RUN apk add --no-cache vips-dev
 
 WORKDIR /app
 
