@@ -197,7 +197,7 @@ func New(logger *logrus.Entry, config ...Config) fiber.Handler {
 			resBodyBytes = bytes.TrimPrefix(resBodyBytes, []byte("\""))
 			resBodyBytes = bytes.TrimSuffix(resBodyBytes, []byte("\""))
 
-			if len(resBodyBytes) > 10_000 && !isResJson {
+			if len(resBodyBytes) > 10_000 || !isResJson {
 				resBodyBytes = []byte("[TRUNCATED]")
 			}
 
