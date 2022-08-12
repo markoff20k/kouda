@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/gookit/goutil/strutil"
@@ -25,9 +27,11 @@ import (
 
 var (
 	ErrBannerMissingUUID  = pkg.NewError(fiber.StatusBadRequest, "admin.banner.missing_uuid")
-	ErrBannerMissingImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.missing_image")
-	ErrBannerInvalidImage = pkg.NewError(fiber.StatusUnprocessableEntity, "resource.banner.invalid_image")
-	ErrBannerDoesntExist  = pkg.NewError(fiber.StatusNotFound, "resource.banner.doesnt_exist")
+	ErrBannerMissingImage = pkg.NewError(fiber.StatusUnprocessableEntity, "admin.banner.missing_image")
+	ErrBannerInvalidImage = pkg.NewError(fiber.StatusUnprocessableEntity, "admin.banner.invalid_image")
+	ErrBannerDoesntExist  = pkg.NewError(fiber.StatusNotFound, "admin.banner.doesnt_exist")
+	ErrBannerOverSize     = pkg.NewError(fiber.StatusNotFound, "admin.banner.over_size")
+	ErrBannerNotFound     = pkg.NewError(fiber.StatusNotFound, "admin.banner.not_found")
 )
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
@@ -127,7 +131,7 @@ func (h Handler) CreateBanner(c *fiber.Ctx) error {
 
 		key := fmt.Sprintf("banners/%s.%s", banner.UUID.String(), typeFile)
 
-		if _, err := h.uploader.Upload(ctx, key, fileBytes); err != nil {
+		if err := h.uploader.Upload(ctx, key, fileBytes); err != nil {
 			return err
 		}
 
@@ -198,7 +202,7 @@ func (h Handler) UpdateBanner(c *fiber.Ctx) error {
 			return err
 		}
 
-		if _, err := h.uploader.Upload(ctx, key, fileBytes); err != nil {
+		if err := h.uploader.Upload(ctx, key, fileBytes); err != nil {
 			return err
 		}
 
@@ -237,17 +241,59 @@ func (h Handler) DeleteBanner(c *fiber.Ctx) error {
 }
 
 func (h Handler) GetBannerImage(c *fiber.Ctx) error {
+	type Params struct {
+		D string `query:"d"`
+	}
+
+	params := new(Params)
+	if err := helpers.QueryParser(c, params, "public.banner"); err != nil {
+		return err
+	}
+
 	uuid := c.Params("uuid")
 	ctx := c.Context()
 
-	banner, err := h.bannerUsecase.First(ctx, filters.WithFieldEqual("uuid", uuid))
+	banner, err := h.bannerUsecase.First(ctx, filters.WithFieldEqual("uuid", uuid), filters.WithFieldEqual("state", models.BannerStateEnabled))
 	if err != nil {
-		return ErrBannerDoesntExist
+		return ErrBannerNotFound
 	}
 
 	body, err := h.uploader.GetBodyContent(ctx, fmt.Sprintf("banners/%s.%s", banner.UUID.String(), banner.Type))
 	if err != nil {
 		return err
+	}
+
+	if len(params.D) > 0 {
+		image, err := vips.NewImageFromBuffer(body)
+		if err != nil {
+			return err
+		}
+
+		width, err := strconv.Atoi(params.D[:strings.Index(params.D, "x")])
+		if err != nil {
+			return err
+		}
+
+		height, err := strconv.Atoi(params.D[strings.Index(params.D, "x")+1:])
+		if err != nil {
+			return err
+		}
+
+		if image.Width() < width || image.Height() < height {
+			return ErrBannerOverSize
+		}
+
+		if err := image.ThumbnailWithSize(width, height, vips.Interesting(vips.ImageTypeMagick), vips.SizeForce); err != nil {
+			return err
+		}
+
+		ep := vips.NewDefaultJPEGExportParams()
+		imageBytes, _, err := image.Export(ep)
+		if err != nil {
+			return err
+		}
+
+		body = imageBytes
 	}
 
 	c.Set("Content-Type", "image/jpeg")

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gookit/validate"
@@ -32,6 +34,35 @@ func InitValidation() {
 
 			return false
 		},
+		"iconState": func(val interface{}) bool {
+			state := val.(models.IconState)
+
+			for _, s := range models.IconStates {
+				if state == s {
+					return true
+				}
+			}
+
+			return false
+		},
+		"sizeBanner": func(val interface{}) bool {
+			str := val.(string)
+			if !strings.Contains(str, "x") {
+				return false
+			}
+
+			stringBeforeX, err := strconv.Atoi(str[:strings.Index(str, "x")])
+			if err != nil || stringBeforeX <= 0 {
+				return false
+			}
+
+			stringAfterX, err := strconv.Atoi(str[strings.Index(str, "x")+1:])
+			if err != nil || stringAfterX <= 0 {
+				return false
+			}
+
+			return true
+		},
 	})
 	validate.Config(func(opt *validate.GlobalOption) {
 		opt.SkipOnEmpty = true
@@ -44,6 +75,10 @@ func InitValidation() {
 		"email":    "invalid_{field}",
 		"password": "invalid_{field}",
 		"required": "missing_{field}",
+
+		"bannerState": "invalid_{field}",
+		"iconState":   "invalid_{field}",
+		"sizeBanner":  "invalid_width_or_height",
 	})
 }
 
@@ -98,10 +133,16 @@ var api = &cli.Command{
 			panic(err)
 		}
 
-		uploader := uploader.New(config.Env.ObjectStorageBucket, config.Env.ObjectStorageAccessKey, config.Env.ObjectStorageAccessSecret, config.Env.ObjectStorageRegion)
-		if err != nil {
-			return err
+		configUploader := &uploader.Config{
+			Bucket:       config.Env.ObjectStorageBucket,
+			AccessKey:    config.Env.ObjectStorageAccessKey,
+			AccessSecret: config.Env.ObjectStorageAccessSecret,
+			Region:       config.Env.ObjectStorageRegion,
+			Enpoint:      config.Env.ObjectStorageEnpoint,
+			Version:      int64(config.Env.ObjectStorageVersion),
 		}
+
+		uploader := uploader.New(configUploader)
 
 		abilities := &types.Abilities{}
 

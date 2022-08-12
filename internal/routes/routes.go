@@ -45,17 +45,20 @@ func InitializeRoutes(
 	}))
 
 	bannerUsecase := usecases.NewBannerUsecase(db)
+	iconUsecase := usecases.NewIconUsecase(db)
 	memberUsecase := usecases.NewMemberUsecase(db)
 
 	apiV2 := app.Group("/api/v2")
 
 	public.NewRouter(apiV2.Group("/public"),
 		bannerUsecase,
+		iconUsecase,
 		uploader,
 	)
 
 	admin.NewRouter(apiV2.Group("/admin", middlewares.Authorization(memberUsecase)),
 		bannerUsecase,
+		iconUsecase,
 		uploader,
 		abilities,
 	)

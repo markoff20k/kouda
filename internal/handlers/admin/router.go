@@ -12,6 +12,7 @@ import (
 
 type Handler struct {
 	bannerUsecase usecases.BannerUsecase
+	iconUsecase   usecases.IconUsecase
 	uploader      *uploader.Uploader
 	abilities     *types.Abilities
 }
@@ -32,6 +33,7 @@ const (
 func NewRouter(
 	router fiber.Router,
 	bannerUsecase usecases.BannerUsecase,
+	iconUsecase usecases.IconUsecase,
 	uploader *uploader.Uploader,
 	abilities *types.Abilities,
 ) {
@@ -42,12 +44,20 @@ func NewRouter(
 
 	handler := Handler{
 		bannerUsecase: bannerUsecase,
+		iconUsecase:   iconUsecase,
 		uploader:      uploader,
 		abilities:     abilities,
 	}
 
 	router.Get("/banners", handler.GetBanners)
+	router.Get("/banners/:uuid", handler.GetBannerImage)
 	router.Post("/banners", handler.CreateBanner)
 	router.Put("/banners", handler.UpdateBanner)
 	router.Delete("/banners/:uuid", handler.DeleteBanner)
+
+	router.Get("/icons", handler.GetIcons)
+	router.Get("/icons/:code", handler.GetIconImage)
+	router.Post("/icons", handler.CreateIcon)
+	router.Put("/icons", handler.UpdateIcon)
+	router.Delete("/icons/:code", handler.DeleteIcon)
 }

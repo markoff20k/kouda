@@ -23,6 +23,14 @@ var initDatabase = gormigrate.Migration{
 			CreatedAt time.Time          `gorm:"type:timestamp;not null"`
 			UpdatedAt time.Time          `gorm:"type:timestamp;not null"`
 		}
+		type Icon struct {
+			ID        int64            `gorm:"primaryKey;not null"`
+			Code      string           `gorm:"type:code;not null;uniqueIndex:index_icons_on_code"`
+			URL       string           `gorm:"type:character varying;not null"`
+			State     models.IconState `gorm:"type:character varying;not null;"`
+			CreatedAt time.Time        `gorm:"type:timestamp;not null"`
+			UpdatedAt time.Time        `gorm:"type:timestamp;not null"`
+		}
 		type Member struct {
 			ID        int64              `gorm:"primaryKey;autoIncrement"`
 			UID       string             `gorm:"type:character varying(32);not null;uniqueIndex:index_members_on_uid"`
@@ -36,12 +44,14 @@ var initDatabase = gormigrate.Migration{
 		}
 		return db.AutoMigrate(
 			Banner{},
+			Icon{},
 			Member{},
 		)
 	},
 	Rollback: func(db *gorm.DB) error {
 		return db.Migrator().DropTable(
 			"banners",
+			"icons",
 			"members",
 		)
 	},

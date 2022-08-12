@@ -2,7 +2,10 @@ package public
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/gofiber/fiber/v2"
 	"github.com/zsmartex/pkg/v2"
 	"github.com/zsmartex/pkg/v2/gpa"
@@ -16,6 +19,7 @@ import (
 
 var (
 	ErrBannerNotFound = pkg.NewError(fiber.StatusNotFound, "public.banner.not_found")
+	ErrBannerOverSize = pkg.NewError(fiber.StatusNotFound, "public.banner.over_size")
 )
 
 func (h Handler) GetBanners(c *fiber.Ctx) error {
@@ -51,6 +55,15 @@ func (h Handler) GetBanners(c *fiber.Ctx) error {
 }
 
 func (h Handler) GetBannerImage(c *fiber.Ctx) error {
+	type Params struct {
+		D string `query:"d" validate:"sizeBanner"`
+	}
+
+	params := new(Params)
+	if err := helpers.QueryParser(c, params, "public.banner"); err != nil {
+		return err
+	}
+
 	uuid := c.Params("uuid")
 	ctx := c.Context()
 
@@ -62,6 +75,39 @@ func (h Handler) GetBannerImage(c *fiber.Ctx) error {
 	body, err := h.Uploader.GetBodyContent(ctx, fmt.Sprintf("banners/%s.%s", banner.UUID.String(), banner.Type))
 	if err != nil {
 		return err
+	}
+
+	if len(params.D) > 0 {
+		image, err := vips.NewImageFromBuffer(body)
+		if err != nil {
+			return err
+		}
+
+		width, err := strconv.Atoi(params.D[:strings.Index(params.D, "x")])
+		if err != nil {
+			return err
+		}
+
+		height, err := strconv.Atoi(params.D[strings.Index(params.D, "x")+1:])
+		if err != nil {
+			return err
+		}
+
+		if image.Width() < width || image.Height() < height {
+			return ErrBannerOverSize
+		}
+
+		if err := image.ThumbnailWithSize(width, height, vips.Interesting(vips.ImageTypeMagick), vips.SizeForce); err != nil {
+			return err
+		}
+
+		ep := vips.NewDefaultJPEGExportParams()
+		imageBytes, _, err := image.Export(ep)
+		if err != nil {
+			return err
+		}
+
+		body = imageBytes
 	}
 
 	c.Set("Content-Type", "image/jpeg")

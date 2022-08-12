@@ -11,29 +11,39 @@ admin_permissions:
   superadmin:
     manage:
       - Banner
+      - Icon
   admin:
     read:
       - Banner
+      - Icon
     manage:
       - Banner
+      - Icon
   technical:
     read:
       - Banner
     manage:
       - Banner
+      - Icon
   accountant:
     read:
       - Banner
+      - Icon
   compliance:
     read:
       - Banner
+      - Icon
     manage:
       - Banner
+      - Icon
   support:
     read:
       - Banner
+      - Icon
     manage:
       - Banner
+      - Icon
   reporter:
     read:
       - Banner
+      - Icon
