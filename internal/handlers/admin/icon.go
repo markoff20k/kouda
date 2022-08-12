@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gookit/goutil/strutil"
@@ -77,7 +79,6 @@ func (h Handler) CreateIcon(c *fiber.Ctx) error {
 
 	type Params struct {
 		Code  string           `json:"code" validate:"required"`
-		URL   string           `json:"url" validate:"required"`
 		State models.IconState `json:"state" validate:"iconState" default:"disabled"`
 	}
 
@@ -115,7 +116,6 @@ func (h Handler) CreateIcon(c *fiber.Ctx) error {
 		icon = &models.Icon{
 			Code:  params.Code,
 			State: params.State,
-			URL:   params.URL,
 		}
 
 		h.iconUsecase.WithTrx(tx).Create(ctx, &icon)
@@ -148,7 +148,11 @@ func (h Handler) GetIconImage(c *fiber.Ctx) error {
 		return err
 	}
 
-	c.Set("Content-Type", "image/jpeg")
+	// get type of image
+	mimeType := http.DetectContentType(body)
+	typeFile := strings.Replace(mimeType, "image/", "", -1)
+
+	c.Set("Content-Type", fmt.Sprintf("image/%s", typeFile))
 
 	return c.Send(body)
 }
@@ -158,7 +162,6 @@ func (h Handler) UpdateIcon(c *fiber.Ctx) error {
 
 	type Params struct {
 		Code  string           `json:"code"`
-		URL   string           `json:"url"`
 		State models.IconState `json:"state" validate:"iconState"`
 	}
 
@@ -178,10 +181,6 @@ func (h Handler) UpdateIcon(c *fiber.Ctx) error {
 
 	if len(params.State) > 0 {
 		targetIcon.State = params.State
-	}
-
-	if len(params.URL) > 0 {
-		targetIcon.URL = params.URL
 	}
 
 	img, _ := c.FormFile("image")

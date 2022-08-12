@@ -25,9 +25,8 @@ var initDatabase = gormigrate.Migration{
 		}
 		type Icon struct {
 			ID        int64            `gorm:"primaryKey;not null"`
-			Code      string           `gorm:"type:code;not null;uniqueIndex:index_icons_on_code"`
-			URL       string           `gorm:"type:character varying;not null"`
-			State     models.IconState `gorm:"type:character varying;not null;"`
+			Code      string           `gorm:"type:character varying(10);not null;uniqueIndex:index_icons_on_code"`
+			State     models.IconState `gorm:"type:character varying(32);not null;"`
 			CreatedAt time.Time        `gorm:"type:timestamp;not null"`
 			UpdatedAt time.Time        `gorm:"type:timestamp;not null"`
 		}

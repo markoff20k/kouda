@@ -2,6 +2,8 @@ package public
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/zsmartex/kouda/internal/models"
@@ -25,7 +27,11 @@ func (h Handler) GetIconImage(c *fiber.Ctx) error {
 		return err
 	}
 
-	c.Set("Content-Type", "image/jpeg")
+	// get type of image
+	mimeType := http.DetectContentType(body)
+	typeFile := strings.Replace(mimeType, "image/", "", -1)
+
+	c.Set("Content-Type", fmt.Sprintf("image/%s", typeFile))
 
 	return c.Send(body)
 }

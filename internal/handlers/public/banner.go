@@ -110,7 +110,7 @@ func (h Handler) GetBannerImage(c *fiber.Ctx) error {
 		body = imageBytes
 	}
 
-	c.Set("Content-Type", "image/jpeg")
+	c.Set("Content-Type", fmt.Sprintf("image/%s", banner.Type))
 
 	return c.Send(body)
 }
